@@ -242,13 +242,23 @@ function renderConcreteNews(container, articles) {
     });
     var top = articles.slice(0, 6);
 
+    // Fallback images used when article has no thumbnail (Google News RSS never includes thumbnails)
+    var fallbackImgs = [
+        'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=70',
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=70',
+        'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=400&q=70',
+        'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=70',
+        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=70',
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=70'
+    ];
+
     var html = '';
-    top.forEach(function(article) {
+    top.forEach(function(article, i) {
         var date = new Date(article.pubDate);
         var dateStr = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-        var imageHtml = article.thumbnail
-            ? '<img src="' + article.thumbnail + '" alt="" loading="lazy" onerror="this.parentElement.innerHTML=\'<div class=news-placeholder>&#127968;</div>\'">'
-            : '<div class="news-placeholder">&#127968;</div>';
+        var imgSrc = article.thumbnail || fallbackImgs[i % fallbackImgs.length];
+        var nextFallback = fallbackImgs[(i + 1) % fallbackImgs.length];
+        var imageHtml = '<img src="' + imgSrc + '" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'' + nextFallback + '\'">';
 
         html += '<div class="news-card animate-in">' +
             '<div class="news-card-image">' + imageHtml + '</div>' +
