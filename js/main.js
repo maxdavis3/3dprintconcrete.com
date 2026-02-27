@@ -164,13 +164,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Concrete 3D printing news feed
 function loadConcreteNewsFeed(container) {
-    // 5 Google News RSS searches targeting 3D printed construction specifically
+    // 5 named publications covering 3D printed construction — these include thumbnail images
     var feeds = [
-        { url: 'https://news.google.com/rss/search?q=3d+printed+concrete+house&hl=en-US&gl=US&ceid=US:en', name: 'Google News' },
-        { url: 'https://news.google.com/rss/search?q=concrete+3d+printing+construction&hl=en-US&gl=US&ceid=US:en', name: 'Google News' },
-        { url: 'https://news.google.com/rss/search?q=3d+printed+home+ICON+COBOD&hl=en-US&gl=US&ceid=US:en', name: 'Google News' },
-        { url: 'https://news.google.com/rss/search?q=robotic+construction+3d+printing&hl=en-US&gl=US&ceid=US:en', name: 'Google News' },
-        { url: 'https://news.google.com/rss/search?q=3d+printed+affordable+housing+construction&hl=en-US&gl=US&ceid=US:en', name: 'Google News' }
+        { url: 'https://3dprint.com/feed/', name: '3DPrint.com' },
+        { url: 'https://3dprintingindustry.com/feed/', name: '3D Printing Industry' },
+        { url: 'https://www.dezeen.com/feed/', name: 'Dezeen' },
+        { url: 'https://www.tctmagazine.com/feed/', name: 'TCT Magazine' },
+        { url: 'https://3dnatives.com/en/feed/', name: '3Dnatives' }
     ];
 
     var rss2jsonBase = 'https://api.rss2json.com/v1/api.json?rss_url=';
