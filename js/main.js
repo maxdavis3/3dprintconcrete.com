@@ -164,13 +164,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Concrete 3D printing news feed
 function loadConcreteNewsFeed(container) {
-    // 5 named publications covering 3D printed construction — these include thumbnail images
+    // 6 distinct sources — capped at 2 articles each to prevent any one source dominating
     var feeds = [
         { url: 'https://3dprint.com/feed/', name: '3DPrint.com' },
         { url: 'https://3dprintingindustry.com/feed/', name: '3D Printing Industry' },
-        { url: 'https://www.dezeen.com/feed/', name: 'Dezeen' },
-        { url: 'https://www.tctmagazine.com/feed/', name: 'TCT Magazine' },
-        { url: 'https://3dnatives.com/en/feed/', name: '3Dnatives' }
+        { url: 'https://3dnatives.com/en/feed/', name: '3Dnatives' },
+        { url: 'https://newatlas.com/index.rss', name: 'New Atlas' },
+        { url: 'https://www.archdaily.com/feed', name: 'ArchDaily' },
+        { url: 'https://www.dezeen.com/architecture/feed/', name: 'Dezeen' }
     ];
 
     var rss2jsonBase = 'https://api.rss2json.com/v1/api.json?rss_url=';
@@ -197,8 +198,8 @@ function loadConcreteNewsFeed(container) {
             .then(function(data) {
                 clearTimeout(feedTimeout);
                 if (data.status === 'ok' && data.items) {
-                    data.items.forEach(function(item) {
-                        // Filter for concrete/construction relevance where possible
+                    // Cap at 2 articles per source so no single outlet dominates
+                    data.items.slice(0, 2).forEach(function(item) {
                         allArticles.push({
                             title: item.title,
                             link: item.link,
