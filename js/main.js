@@ -245,12 +245,16 @@ function renderConcreteNews(container, articles) {
 
     // Fallback images used when article has no thumbnail (Google News RSS never includes thumbnails)
     var fallbackImgs = [
-        'images/01-modern-2story.png',
+        'images/11-process-suburban-gantry.png',
         'images/03-single-story-curved.png',
-        'images/04-urban-townhouse.png',
-        'images/05-beach-house.png',
+        'images/14-process-urban-lot.png',
+        'images/16-process-interior-printing.png',
+        'images/15-process-night-construction.png',
+        'images/13-process-rural-aerial.png',
+        'images/01-modern-2story.png',
+        'images/18-process-stages-composite.png',
         'images/07-futuristic-compound.png',
-        'images/10-affordable-housing.png'
+        'images/19-process-disaster-relief.png'
     ];
 
     var html = '';
