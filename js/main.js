@@ -80,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     var target = parseInt(el.getAttribute('data-count'), 10);
                     var suffix = el.textContent.replace(/[0-9]/g, '');
                     var duration = 2000;
-                    var start = 0;
                     var startTime = null;
 
                     function animate(timestamp) {
@@ -116,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var messageError = document.getElementById('message-error');
             var hasError = false;
 
-            // Clear previous errors
             [nameInput, emailInput, messageInput].forEach(function(input) {
                 if (input) input.classList.remove('error');
             });
@@ -156,4 +154,140 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // RSS News Feed
+    var newsGrid = document.getElementById('newsGrid');
+    if (newsGrid) {
+        loadConcreteNewsFeed(newsGrid);
+    }
+
 });
+
+// Concrete 3D printing news feed
+function loadConcreteNewsFeed(container) {
+    // 5 Google News RSS searches targeting 3D printed construction specifically
+    var feeds = [
+        { url: 'https://news.google.com/rss/search?q=3d+printed+concrete+house&hl=en-US&gl=US&ceid=US:en', name: 'Google News' },
+        { url: 'https://news.google.com/rss/search?q=concrete+3d+printing+construction&hl=en-US&gl=US&ceid=US:en', name: 'Google News' },
+        { url: 'https://news.google.com/rss/search?q=3d+printed+home+ICON+COBOD&hl=en-US&gl=US&ceid=US:en', name: 'Google News' },
+        { url: 'https://news.google.com/rss/search?q=robotic+construction+3d+printing&hl=en-US&gl=US&ceid=US:en', name: 'Google News' },
+        { url: 'https://news.google.com/rss/search?q=3d+printed+affordable+housing+construction&hl=en-US&gl=US&ceid=US:en', name: 'Google News' }
+    ];
+
+    var rss2jsonBase = 'https://api.rss2json.com/v1/api.json?rss_url=';
+    var allArticles = [];
+    var feedsLoaded = 0;
+    var feedsTotal = feeds.length;
+
+    // Timeout: show fallback if feeds don't load within 8 seconds
+    var timeout = setTimeout(function() {
+        if (feedsLoaded < feedsTotal) {
+            renderConcreteNews(container, allArticles);
+        }
+    }, 8000);
+
+    feeds.forEach(function(feed) {
+        var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        var fetchOptions = controller ? { signal: controller.signal } : {};
+        var feedTimeout = setTimeout(function() {
+            if (controller) controller.abort();
+        }, 6000);
+
+        fetch(rss2jsonBase + encodeURIComponent(feed.url), fetchOptions)
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                clearTimeout(feedTimeout);
+                if (data.status === 'ok' && data.items) {
+                    data.items.forEach(function(item) {
+                        // Filter for concrete/construction relevance where possible
+                        allArticles.push({
+                            title: item.title,
+                            link: item.link,
+                            description: stripHtmlConcrete(item.description).substring(0, 150) + '...',
+                            pubDate: item.pubDate,
+                            thumbnail: item.thumbnail || (item.enclosure && item.enclosure.link) || '',
+                            source: feed.name
+                        });
+                    });
+                }
+            })
+            .catch(function() {
+                clearTimeout(feedTimeout);
+            })
+            .then(function() {
+                feedsLoaded++;
+                if (feedsLoaded === feedsTotal) {
+                    clearTimeout(timeout);
+                    renderConcreteNews(container, allArticles);
+                }
+            });
+    });
+}
+
+function stripHtmlConcrete(html) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+}
+
+function renderConcreteNews(container, articles) {
+    if (articles.length === 0) {
+        container.innerHTML = '<div class="news-error"><p>Unable to load news feeds at this time.</p>' +
+            '<a href="https://3dprintingindustry.com" target="_blank" rel="noopener" class="btn btn-outline">Visit 3D Printing Industry</a></div>';
+        return;
+    }
+
+    // Sort by date, take top 6
+    articles.sort(function(a, b) {
+        return new Date(b.pubDate) - new Date(a.pubDate);
+    });
+    var top = articles.slice(0, 6);
+
+    var html = '';
+    top.forEach(function(article) {
+        var date = new Date(article.pubDate);
+        var dateStr = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        var imageHtml = article.thumbnail
+            ? '<img src="' + article.thumbnail + '" alt="" loading="lazy" onerror="this.parentElement.innerHTML=\'<div class=news-placeholder>&#127968;</div>\'">'
+            : '<div class="news-placeholder">&#127968;</div>';
+
+        html += '<div class="news-card animate-in">' +
+            '<div class="news-card-image">' + imageHtml + '</div>' +
+            '<div class="news-card-body">' +
+                '<div class="news-card-source">' + escapeHtmlConcrete(article.source) + '</div>' +
+                '<h3>' + escapeHtmlConcrete(article.title) + '</h3>' +
+                '<p>' + escapeHtmlConcrete(article.description) + '</p>' +
+                '<div class="news-card-date">' + dateStr + '</div>' +
+            '</div>' +
+        '</div>';
+    });
+
+    container.innerHTML = html;
+
+    // Observe new cards for animation
+    var newCards = container.querySelectorAll('.animate-in');
+    if (newCards.length > 0 && 'IntersectionObserver' in window) {
+        var obs = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        newCards.forEach(function(el) { obs.observe(el); });
+    }
+
+    // Clickable cards
+    var cards = container.querySelectorAll('.news-card');
+    cards.forEach(function(card, i) {
+        card.addEventListener('click', function() {
+            window.open(top[i].link, '_blank', 'noopener');
+        });
+    });
+}
+
+function escapeHtmlConcrete(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
